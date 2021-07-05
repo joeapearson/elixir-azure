@@ -1,7 +1,7 @@
 defmodule Azure.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.2.0"
   @repo_url "https://github.com/joeapearson/elixir-azure"
 
   def project do
@@ -67,7 +67,7 @@ defmodule Azure.MixProject do
         "almirsarajcic",
         "bettyblocks",
         "chgeuer",
-        "Joe Pearson"
+        "joeapearson"
       ],
       source_ref: "v#{@version}",
       source_url: @repo_url,
