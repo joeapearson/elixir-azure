@@ -1,6 +1,8 @@
 # Azure
 
-**TODO: Add description**
+Basic Azure support for Elixir.
+
+Includes support for Azure Storage APIs.
 
 ## Installation
 
@@ -19,3 +21,6 @@ Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_do
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/azure](https://hexdocs.pm/azure).
 
+## Credits
+
+This repo was largely derived from [ex_microsoft_azure_storage](https://github.com/almirsarajcic/ex_microsoft_azure_storage).
