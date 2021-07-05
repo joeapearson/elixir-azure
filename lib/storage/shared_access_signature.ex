@@ -95,7 +95,7 @@ defmodule Azure.Storage.SharedAccessSignature do
     %{v | canonicalized_resource: resource_name}
   end
 
-  defp as_time(t), do: t |> Timex.format!("{YYYY}-{0M}-{0D}T{0h24}:{0m}:{0s}Z")
+  def as_time(t), do: t |> Timex.format!("{YYYY}-{0M}-{0D}T{0h24}:{0m}:{0s}Z")
 
   def service_version(v = %__MODULE__{}, service_version),
     do: %{v | service_version: service_version}
@@ -106,21 +106,18 @@ defmodule Azure.Storage.SharedAccessSignature do
   def ip_range(v = %__MODULE__{}, ip_range), do: %{v | ip_range: ip_range}
   def protocol(v = %__MODULE__{}, protocol), do: %{v | protocol: protocol}
 
-  def encode({key, value}) do
-    case key do
-      :service_version -> {"sv", value}
-      :start_time -> {"st", value |> as_time()}
-      :expiry_time -> {"se", value |> as_time()}
-      :canonicalized_resource -> {"cr", value}
-      :resource -> {"sr", value |> set_to_string(@resource_map)}
-      :ip_range -> {"sip", value}
-      :protocol -> {"spr", value}
-      :services -> {"ss", value |> set_to_string(@services_map)}
-      :resource_type -> {"srt", value |> set_to_string(@resource_types_map)}
-      :permissions -> {"sp", value |> set_to_string(@permissions_map)}
-      _ -> {nil, nil}
-    end
-  end
+  def encode({:service_version, value}), do: {"sv", value}
+  def encode({:start_time, value}), do: {"st", value |> as_time()}
+
+  def encode({:expiry_time, value}), do: {"se", value |> as_time()}
+  def encode({:canonicalized_resource, value}), do: {"cr", value}
+  def encode({:resource, value}), do: {"sr", value |> set_to_string(@resource_map)}
+  def encode({:ip_range, value}), do: {"sip", value}
+  def encode({:protocol, value}), do: {"spr", value}
+  def encode({:services, value}), do: {"ss", value |> set_to_string(@services_map)}
+  def encode({:resource_type, value}), do: {"srt", value |> set_to_string(@resource_types_map)}
+  def encode({:permissions, value}), do: {"sp", value |> set_to_string(@permissions_map)}
+  def encode(_), do: {nil, nil}
 
   defp string_to_sign(values, _account_name, :blob) do
     [

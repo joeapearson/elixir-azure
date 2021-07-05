@@ -9,6 +9,7 @@ defmodule Azure.MixProject do
       app: :azure,
       version: @version,
       elixir: "~> 1.12",
+      elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       dialyzer: dialyzer(),
@@ -32,6 +33,7 @@ defmodule Azure.MixProject do
       {:credo, "~> 1.5.6", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.1.0", only: [:dev, :test], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
+      {:ex_machina, only: [:dev, :test]},
       {:hackney, "~> 1.17.4"},
       {:jason, "~> 1.2.2", optional: true},
       {:named_args, "~> 0.1.1"},
@@ -43,11 +45,13 @@ defmodule Azure.MixProject do
     ]
   end
 
+  # Specifies which paths to compile per environment.
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
+
   defp package do
     [
-      description:
-        "Provides configurable HTTP liveness and readiness endpoints for supporting Kubernetes probes.",
-      licenses: ["MIT"],
+      description: "Azure storage",
       links: %{"GitHub" => @repo_url}
     ]
   end

@@ -5,7 +5,7 @@ defmodule Azure.Storage.RequestBuilder do
 
   import SweetXml
   alias Azure.Storage
-  alias Azure.Storage.{ApiVersion, DateTimeUtils, Container, RestClient}
+  alias Azure.Storage.{ApiVersion, Container, DateTimeUtils, RestClient}
 
   defp json_library, do: Application.get_env(:azure, :json_library, Jason)
 
