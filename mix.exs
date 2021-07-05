@@ -2,7 +2,7 @@ defmodule Azure.MixProject do
   use Mix.Project
 
   @version "0.1.0"
-  @repo_url "https://github.com/joeapearson/elixir-k8s-probe"
+  @repo_url "https://github.com/joeapearson/elixir-azure"
 
   def project do
     [
