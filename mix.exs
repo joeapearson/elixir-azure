@@ -1,7 +1,7 @@
 defmodule Azure.MixProject do
   use Mix.Project
 
-  @version "0.4.1"
+  @version "0.1.0"
   @repo_url "https://github.com/joeapearson/elixir-k8s-probe"
 
   def project do
@@ -52,7 +52,8 @@ defmodule Azure.MixProject do
   defp package do
     [
       description: "Azure storage",
-      links: %{"GitHub" => @repo_url}
+      links: %{"GitHub" => @repo_url},
+      licenses: ["MIT"]
     ]
   end
 
