@@ -38,6 +38,9 @@ defmodule Azure.Storage.RequestBuilder do
 
   def add_header(request, k, v), do: request |> Map.put(:headers, [{k, v}])
 
+  def has_header?(%{headers: headers}, k), do: List.keymember?(headers, k, 0)
+  def has_header?(_request, _k), do: false
+
   @prefix_x_ms_meta "x-ms-meta-"
 
   def add_header_x_ms_meta(request, kvp = %{}),
@@ -244,8 +247,10 @@ defmodule Azure.Storage.RequestBuilder do
       uri
       |> RestClient.new()
 
+    add_content_type_header? = request.method == :put && !has_header?(request, "Content-Type")
+
     request
-    |> add_header_if(request.method == :put, "Content-Type", "application/octet-stream")
+    |> add_header_if(add_content_type_header?, "Content-Type", "application/octet-stream")
     |> add_header("x-ms-date", DateTimeUtils.utc_now())
     |> add_header("x-ms-version", ApiVersion.get_api_version(:storage))
     |> remove_empty_headers()

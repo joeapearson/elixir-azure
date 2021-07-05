@@ -105,6 +105,7 @@ defmodule Azure.Storage.BlobStorage do
       |> Map.update!(:hour_metrics, &Metrics.to_struct/1)
       |> Map.update!(:minute_metrics, &Metrics.to_struct/1)
       |> Map.update!(:delete_retention_policy, &RetentionPolicy.to_struct/1)
+      |> Map.update!(:cors_rules, &CorsRule.to_struct/1)
     end
 
     defmodule Logging do
@@ -209,6 +210,7 @@ defmodule Azure.Storage.BlobStorage do
         :allowed_headers
       ]
 
+      def to_struct(data) when is_list(data), do: data |> Enum.map(&to_struct/1)
       def to_struct(data), do: struct(__MODULE__, data)
     end
 
@@ -324,6 +326,7 @@ defmodule Azure.Storage.BlobStorage do
     # https://docs.microsoft.com/en-us/rest/api/storageservices/get-blob-service-stats
     response =
       context
+      |> Storage.secondary()
       |> new_azure_storage_request()
       |> method(:get)
       |> url("/")
@@ -364,13 +367,15 @@ defmodule Azure.Storage.BlobStorage do
         {:error, response |> create_error_response()}
 
       %{status: 200} ->
+        {_header, request_id} = response.headers |> List.keyfind("x-ms-request-id", 0)
+
         {:ok,
          %{}
          |> Map.put(:service_properties, ServiceProperties.parse(response.body))
          |> Map.put(:headers, response.headers)
          |> Map.put(:url, response.url)
          |> Map.put(:status, response.status)
-         |> Map.put(:request_id, response.headers["x-ms-request-id"])}
+         |> Map.put(:request_id, request_id)}
     end
   end
 

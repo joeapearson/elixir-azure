@@ -19,7 +19,8 @@ defmodule Azure.Storage do
     file_service: "file"
   }
 
-  @development_fabric_key "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw=="
+  @development_account_name "devstoreaccount1"
+  @development_account_key "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw=="
 
   @doc """
   Returns the storage context for the Azure storage emulator.
@@ -27,12 +28,14 @@ defmodule Azure.Storage do
   def development_factory(host \\ "127.0.0.1") do
     %__MODULE__{
       # https://docs.microsoft.com/en-us/azure/storage/common/storage-use-emulator#authenticating-requests-against-the-storage-emulator
-      account_name: "devstoreaccount1",
-      account_key: @development_fabric_key,
+      account_name: @development_account_name,
+      account_key: @development_account_key,
       host: host,
       is_development_factory: true
     }
   end
+
+  def secondary(context = %__MODULE__{is_development_factory: true}), do: context
 
   def secondary(context = %__MODULE__{}),
     do:
