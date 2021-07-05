@@ -21,6 +21,16 @@ Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_do
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/azure](https://hexdocs.pm/azure).
 
+## Running tests
+
+Tests are run against [Azurite](https://github.com/Azure/Azurite), an Azure storage emulator, using
+Docker Compose:
+
+```sh
+$ docker compose up -d
+$ mix test --include external
+```
+
 ## Credits
 
-This repo was largely derived from [ex_microsoft_azure_storage](https://github.com/almirsarajcic/ex_microsoft_azure_storage).
+This repo was largely derived from [ex_microsoft_azure_storage](https://github.com/chgeuer/ex_microsoft_azure_storage) originally written by [@chgeuer](https://github.com/chgeuer).  Credit and thanks.

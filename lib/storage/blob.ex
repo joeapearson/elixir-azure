@@ -163,6 +163,115 @@ defmodule Azure.Storage.Blob do
     end
   end
 
+  def get_blob(blob, opts \\ [])
+
+  def get_blob(
+        %__MODULE__{
+          container: %Container{storage_context: context, container_name: container_name},
+          blob_name: blob_name
+        },
+        _opts
+      ) do
+    response =
+      context
+      |> new_azure_storage_request()
+      |> method(:get)
+      |> url("/#{container_name}/#{blob_name}")
+      |> sign_and_call(:blob_service)
+
+    case response do
+      %{status: status} when 400 <= status and status < 500 ->
+        {:error, response |> create_error_response()}
+
+      %{status: 200} ->
+        {:ok, response |> create_success_response()}
+    end
+  end
+
+  def put_blob(
+        %__MODULE__{
+          container: %Container{storage_context: context, container_name: container_name},
+          blob_name: blob_name
+        },
+        blob_data,
+        opts \\ []
+      ) do
+    blob_type = Keyword.get(opts, :blob_type, "BlockBlob")
+    content_type = Keyword.get(opts, :content_type)
+    content_disposition = Keyword.get(opts, :content_disposition)
+    content_encoding = Keyword.get(opts, :content_encoding)
+
+    response =
+      context
+      |> new_azure_storage_request()
+      |> method(:put)
+      |> url("/#{container_name}/#{blob_name}")
+      |> add_header("x-ms-blob-type", blob_type)
+      |> body(blob_data)
+      |> add_header_if(!!content_type, "x-ms-blob-content-type", content_type)
+      |> add_header_if(
+        !!content_disposition,
+        "x-ms-blob-content-disposition",
+        content_disposition
+      )
+      |> add_header_if(
+        !!content_encoding,
+        "x-ms-blob-content-encoding",
+        content_encoding
+      )
+      |> add_header_content_md5()
+      |> sign_and_call(:blob_service)
+
+    case response do
+      %{status: status} when 400 <= status and status < 500 ->
+        {:error, response |> create_error_response()}
+
+      %{status: 201} ->
+        {:ok, response |> create_success_response()}
+    end
+  end
+
+  def put_blob_from_url(
+        %__MODULE__{
+          container: %Container{storage_context: context, container_name: container_name},
+          blob_name: blob_name
+        },
+        url,
+        opts \\ []
+      ) do
+    content_type = Keyword.get(opts, :content_type)
+    content_disposition = Keyword.get(opts, :content_disposition)
+    content_encoding = Keyword.get(opts, :content_encoding)
+
+    response =
+      context
+      |> new_azure_storage_request()
+      |> method(:put)
+      |> url("/#{container_name}/#{blob_name}")
+      |> add_header("x-ms-blob-type", "BlockBlob")
+      |> add_header("x-ms-copy-source", url)
+      |> add_header_if(!!content_type, "x-ms-blob-content-type", content_type)
+      |> add_header_if(
+        !!content_disposition,
+        "x-ms-blob-content-disposition",
+        content_disposition
+      )
+      |> add_header_if(
+        !!content_encoding,
+        "x-ms-blob-content-encoding",
+        content_encoding
+      )
+      |> sign_and_call(:blob_service)
+
+    case response do
+      %{status: status} when 400 <= status and status < 500 ->
+        {:error, response |> create_error_response()}
+
+      %{status: 201} ->
+        {:ok, response |> create_success_response()}
+    end
+  end
+
   @spec upload_file(Container.t(), String.t()) :: {:ok, map} | {:error, map}
   def upload_file(container = %Container{}, source_path, blob_name \\ nil) do
     container

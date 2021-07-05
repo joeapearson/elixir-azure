@@ -8,4 +8,8 @@ defmodule Azure.Factory do
   def value_factory(_attrs) do
     sequence("value")
   end
+
+  def storage_context_factory do
+    Azure.Storage.development_factory()
+  end
 end

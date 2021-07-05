@@ -7,7 +7,7 @@ defmodule Azure.Storage.ApiVersion do
   # def get_api_version(:storage), do: "2016-05-31"
   # "2017-07-29"
   # "2017-11-09"
-  def get_api_version(:storage), do: "2018-03-28"
+  def get_api_version(:storage), do: "2020-04-08"
 
   defstruct [:year, :month, :day]
 

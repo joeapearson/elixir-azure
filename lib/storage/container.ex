@@ -114,6 +114,17 @@ defmodule Azure.Storage.Container do
     end
   end
 
+  @doc """
+  Returns an existing container if found or creates a new one if not.
+  """
+  def ensure_container(container) do
+    case create_container(container) do
+      {:ok, %{status: 201} = response} -> {:ok, response}
+      {:error, %{error_code: "ContainerAlreadyExists"} = response} -> {:ok, response}
+      other -> other
+    end
+  end
+
   def get_container_properties(%__MODULE__{
         storage_context: context,
         container_name: container_name
