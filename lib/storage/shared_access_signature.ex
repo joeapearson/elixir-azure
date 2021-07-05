@@ -119,20 +119,53 @@ defmodule Azure.Storage.SharedAccessSignature do
   def encode({:permissions, value}), do: {"sp", value |> set_to_string(@permissions_map)}
   def encode(_), do: {nil, nil}
 
+  # https://docs.microsoft.com/en-us/rest/api/storageservices/create-service-sas#version-2018-11-09-and-later
+  # StringToSign = signedPermissions + "\n" +
+  #              signedStart + "\n" +
+  #              signedExpiry + "\n" +
+  #              canonicalizedResource + "\n" +
+  #              signedIdentifier + "\n" +
+  #              signedIP + "\n" +
+  #              signedProtocol + "\n" +
+  #              signedVersion + "\n" +
+  #              signedResource + "\n"
+  #              signedSnapshotTime + "\n" +
+  #              rscc + "\n" +
+  #              rscd + "\n" +
+  #              rsce + "\n" +
+  #              rscl + "\n" +
+  #              rsct
   defp string_to_sign(values, _account_name, :blob) do
     [
+      # permissions
       values |> Map.get("sp", ""),
+      # start date
       values |> Map.get("st", ""),
+      # expiry date
       values |> Map.get("se", ""),
+      # canonicalized resource
       values |> Map.get("cr", ""),
+      # identifier
       "",
+      # IP address
       values |> Map.get("sip", ""),
+      # Protocol
       values |> Map.get("spr", ""),
+      # Version
       values |> Map.get("sv", ""),
+      # resource
+      values |> Map.get("sr"),
+      # snapshottime
       "",
+      # rscc
       "",
+      # rscd
       "",
+      # rsce
       "",
+      # rscl
+      "",
+      # rsct
       ""
     ]
     |> Enum.join("\n")
