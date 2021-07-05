@@ -53,7 +53,8 @@ defmodule Azure.MixProject do
     [
       description: "Azure storage",
       links: %{"GitHub" => @repo_url},
-      licenses: ["MIT"]
+      licenses: ["MIT"],
+      files: ~w(lib .formatter.exs mix.exs README.md LICENSE.md CHANGELOG.md)
     ]
   end
 
