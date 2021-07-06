@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.2.3 - 2021-07-05
+
+### Added
+
+- Generate SAS tokens overriding content-disposition, content-encoding, content-language and so on.
+
 ## 0.2.2 - 2021-07-05
 
 ### Fixed
