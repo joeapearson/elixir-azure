@@ -3,9 +3,30 @@ defmodule Azure.Storage.SharedAccessSignatureTest do
 
   use ExUnit.Case, async: true
 
+  @moduletag :external
+
   import Azure.Factory
 
   alias Azure.Storage.SharedAccessSignature, as: SAS
+  alias Azure.Storage.{Blob, Container}
+
+  @blob_name "my_blob"
+  @blob_data "blob_data"
+
+  setup_all do
+    storage_context = build(:storage_context)
+    container_context = storage_context |> Container.new("sas_test")
+
+    {:ok, _response} = Container.ensure_container(container_context)
+
+    blob = container_context |> Blob.new(@blob_name)
+
+    {:ok, %{status: 201}} =
+      blob
+      |> Blob.put_blob(@blob_data)
+
+    %{storage_context: storage_context, container_context: container_context, blob: blob}
+  end
 
   describe "encode" do
     test "encodes values" do
@@ -42,6 +63,12 @@ defmodule Azure.Storage.SharedAccessSignatureTest do
       assert {"sp", "c"} == SAS.encode({:permissions, [:create]})
       assert {"sp", "u"} == SAS.encode({:permissions, [:update]})
       assert {"sp", "p"} == SAS.encode({:permissions, [:process]})
+
+      assert {"rscc", value} == SAS.encode({:cache_control, value})
+      assert {"rscd", value} == SAS.encode({:content_disposition, value})
+      assert {"rsce", value} == SAS.encode({:content_encoding, value})
+      assert {"rscl", value} == SAS.encode({:content_language, value})
+      assert {"rsct", value} == SAS.encode({:content_type, value})
 
       assert {nil, nil} == SAS.encode({:not, "a value"})
     end

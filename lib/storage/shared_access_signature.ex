@@ -21,7 +21,12 @@ defmodule Azure.Storage.SharedAccessSignature do
     :canonicalized_resource,
     :resource,
     :ip_range,
-    :protocol
+    :protocol,
+    :cache_control,
+    :content_disposition,
+    :content_encoding,
+    :content_language,
+    :content_type
   ]
 
   def new, do: %__MODULE__{}
@@ -106,6 +111,19 @@ defmodule Azure.Storage.SharedAccessSignature do
   def ip_range(v = %__MODULE__{}, ip_range), do: %{v | ip_range: ip_range}
   def protocol(v = %__MODULE__{}, protocol), do: %{v | protocol: protocol}
 
+  def cache_control(v = %__MODULE__{}, cache_control), do: %{v | cache_control: cache_control}
+
+  def content_disposition(v = %__MODULE__{}, content_disposition),
+    do: %{v | content_disposition: content_disposition}
+
+  def content_encoding(v = %__MODULE__{}, content_encoding),
+    do: %{v | content_encoding: content_encoding}
+
+  def content_language(v = %__MODULE__{}, content_language),
+    do: %{v | content_language: content_language}
+
+  def content_type(v = %__MODULE__{}, content_type), do: %{v | content_type: content_type}
+
   def encode({:service_version, value}), do: {"sv", value}
   def encode({:start_time, value}), do: {"st", value |> as_time()}
 
@@ -117,6 +135,11 @@ defmodule Azure.Storage.SharedAccessSignature do
   def encode({:services, value}), do: {"ss", value |> set_to_string(@services_map)}
   def encode({:resource_type, value}), do: {"srt", value |> set_to_string(@resource_types_map)}
   def encode({:permissions, value}), do: {"sp", value |> set_to_string(@permissions_map)}
+  def encode({:cache_control, value}), do: {"rscc", value}
+  def encode({:content_disposition, value}), do: {"rscd", value}
+  def encode({:content_encoding, value}), do: {"rsce", value}
+  def encode({:content_language, value}), do: {"rscl", value}
+  def encode({:content_type, value}), do: {"rsct", value}
   def encode(_), do: {nil, nil}
 
   # https://docs.microsoft.com/en-us/rest/api/storageservices/create-service-sas#version-2018-11-09-and-later
@@ -157,16 +180,16 @@ defmodule Azure.Storage.SharedAccessSignature do
       values |> Map.get("sr"),
       # snapshottime
       "",
-      # rscc
-      "",
-      # rscd
-      "",
-      # rsce
-      "",
-      # rscl
-      "",
-      # rsct
-      ""
+      # rscc - Cache-Control
+      values |> Map.get("rscc", ""),
+      # rscd - Content-Disposition
+      values |> Map.get("rscd", ""),
+      # rsce - Content-Encoding
+      values |> Map.get("rsce", ""),
+      # rscl - Content-Language
+      values |> Map.get("rscl", ""),
+      # rsct - Content-Type
+      values |> Map.get("rsct", "")
     ]
     |> Enum.join("\n")
   end
