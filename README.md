@@ -1,3 +1,6 @@
+
+[![Hex.pm](https://img.shields.io/hexpm/v/azure.svg)](https://hex.pm/packages/azure)
+
 # Azure
 
 Basic Azure support for Elixir.
