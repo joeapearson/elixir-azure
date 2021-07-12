@@ -26,4 +26,4 @@ jobs:
       - run: mix deps.get
       - run: mix credo --strict
       - run: mix dialyzer
-      - run: mix test
+      - run: mix test --include external
