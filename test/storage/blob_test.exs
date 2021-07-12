@@ -9,9 +9,16 @@ defmodule Azure.Storage.BlobTest do
 
   import Azure.Factory
 
+  defp header(headers, key) do
+    case List.keyfind(headers, key, 0) do
+      nil -> nil
+      {^key, value} -> value
+    end
+  end
+
   setup do
     storage_context = build(:storage_context)
-    container_context = storage_context |> Container.new("my-container")
+    container_context = storage_context |> Container.new("blob-test")
 
     {:ok, _response} = Container.ensure_container(container_context)
 
@@ -33,18 +40,41 @@ defmodule Azure.Storage.BlobTest do
   end
 
   describe "put_blob_by_url" do
-    test "puts a blob from a URL", %{container_context: container_context} do
-      url =
-        "https://raw.githubusercontent.com/joeapearson/elixir-azure/main/test/storage/blob_from_url.txt"
+    test "puts a blob from a URL", %{
+      container_context: container_context,
+      storage_context: storage_context
+    } do
+      blob_name = "blob_from_url.txt"
 
-      blob_name = "my_blob_from_url"
+      url =
+        "https://raw.githubusercontent.com/joeapearson/elixir-azure/main/test/storage/#{blob_name}"
+
+      %{headers: source_headers} = Tesla.head!(url)
+      source_content_type = header(source_headers, "content-type")
+
+      expected_contents =
+        if storage_context.is_development_factory do
+          # Storage emulator doesn't yet support put blob from URL API and always returns an empty
+          # blob
+          ""
+        else
+          File.read!(Path.expand(blob_name, __DIR__))
+        end
+
       blob = container_context |> Blob.new(blob_name)
 
       assert {:ok, %{status: 201}} = blob |> Blob.put_blob_from_url(url)
 
-      # Storage emulator returns an empty blob but if switch to a true storage account then this
-      # works.
-      assert {:ok, %{status: 200}} = blob |> Blob.get_blob()
+      assert {:ok, %{status: 200, body: destination_body, headers: destination_headers}} =
+               blob |> Blob.get_blob() |> IO.inspect()
+
+      assert destination_body == expected_contents
+
+      destination_content_type = header(destination_headers, "content-type")
+
+      assert is_binary(source_content_type)
+
+      assert source_content_type == destination_content_type
     end
   end
 end

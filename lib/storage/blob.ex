@@ -196,29 +196,17 @@ defmodule Azure.Storage.Blob do
         blob_data,
         opts \\ []
       ) do
-    blob_type = Keyword.get(opts, :blob_type, "BlockBlob")
-    content_type = Keyword.get(opts, :content_type)
-    content_disposition = Keyword.get(opts, :content_disposition)
-    content_encoding = Keyword.get(opts, :content_encoding)
+    opts =
+      opts
+      |> Keyword.put(:blob_type, "BlockBlob")
 
     response =
       context
       |> new_azure_storage_request()
       |> method(:put)
       |> url("/#{container_name}/#{blob_name}")
-      |> add_header("x-ms-blob-type", blob_type)
       |> body(blob_data)
-      |> add_header_if(!!content_type, "x-ms-blob-content-type", content_type)
-      |> add_header_if(
-        !!content_disposition,
-        "x-ms-blob-content-disposition",
-        content_disposition
-      )
-      |> add_header_if(
-        !!content_encoding,
-        "x-ms-blob-content-encoding",
-        content_encoding
-      )
+      |> add_headers_from_opts(opts)
       |> add_header_content_md5()
       |> sign_and_call(:blob_service)
 
@@ -231,6 +219,18 @@ defmodule Azure.Storage.Blob do
     end
   end
 
+  defp add_headers_from_opts(request, opts) do
+    Enum.reduce(opts, request, fn {key, value}, request ->
+      request |> add_header(header_for_opt(key), value)
+    end)
+  end
+
+  defp header_for_opt(:blob_type), do: "x-ms-blob-type"
+  defp header_for_opt(:copy_source), do: "x-ms-copy-source"
+  defp header_for_opt(:content_type), do: "x-ms-blob-content-type"
+  defp header_for_opt(:content_disposition), do: "x-ms-blob-content-disposition"
+  defp header_for_opt(:content_encoding), do: "x-ms-blob-content-encoding"
+
   def put_blob_from_url(
         %__MODULE__{
           container: %Container{storage_context: context, container_name: container_name},
@@ -239,28 +239,17 @@ defmodule Azure.Storage.Blob do
         url,
         opts \\ []
       ) do
-    content_type = Keyword.get(opts, :content_type)
-    content_disposition = Keyword.get(opts, :content_disposition)
-    content_encoding = Keyword.get(opts, :content_encoding)
+    opts =
+      opts
+      |> Keyword.put(:blob_type, "BlockBlob")
+      |> Keyword.put(:copy_source, url)
 
     response =
       context
       |> new_azure_storage_request()
       |> method(:put)
       |> url("/#{container_name}/#{blob_name}")
-      |> add_header("x-ms-blob-type", "BlockBlob")
-      |> add_header("x-ms-copy-source", url)
-      |> add_header_if(!!content_type, "x-ms-blob-content-type", content_type)
-      |> add_header_if(
-        !!content_disposition,
-        "x-ms-blob-content-disposition",
-        content_disposition
-      )
-      |> add_header_if(
-        !!content_encoding,
-        "x-ms-blob-content-encoding",
-        content_encoding
-      )
+      |> add_headers_from_opts(opts)
       |> sign_and_call(:blob_service)
 
     case response do

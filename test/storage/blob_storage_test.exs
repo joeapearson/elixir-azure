@@ -34,7 +34,7 @@ defmodule Azure.Storage.BlobStorageTest do
   describe "put_blob_service_properties" do
     test "sets CORS rules", %{storage_context: storage_context} do
       rule = %{
-        allowed_origins: ["https://stg1.sibl.pub"],
+        allowed_origins: ["https://google.com"],
         allowed_methods: ["GET"],
         max_age_in_seconds: 600,
         exposed_headers: [""],

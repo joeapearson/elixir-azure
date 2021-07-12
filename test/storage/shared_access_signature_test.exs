@@ -15,7 +15,7 @@ defmodule Azure.Storage.SharedAccessSignatureTest do
 
   setup_all do
     storage_context = build(:storage_context)
-    container_context = storage_context |> Container.new("sas_test")
+    container_context = storage_context |> Container.new("sas-test")
 
     {:ok, _response} = Container.ensure_container(container_context)
 

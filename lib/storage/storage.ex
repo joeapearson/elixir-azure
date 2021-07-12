@@ -3,13 +3,16 @@ defmodule Azure.Storage do
   Azure.Storage
   """
 
+  alias Azure.Storage.ConnectionString
+
   @derive {Inspect, except: [:account_key]}
   @enforce_keys []
   defstruct account_name: nil,
             account_key: nil,
             host: nil,
             aad_token_provider: nil,
-            cloud_environment_suffix: nil,
+            endpoint_suffix: nil,
+            default_endpoints_protocol: "https",
             is_development_factory: false
 
   @endpoint_names %{
@@ -23,6 +26,17 @@ defmodule Azure.Storage do
   @development_account_key "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw=="
 
   @doc """
+  Creates a new `Azure.Storage` struct from the specified `connection_string`.
+
+  Your particular account connection string may be found in the Azure web portal.  They take this form:
+
+      DefaultEndpointsProtocol=https;AccountName=YOUR_ACCOUNT_NAME;AccountKey=YOUR_ACCOUNT_KEY;EndpointSuffix=core.windows.net
+  """
+  def new(connection_string) when is_binary(connection_string) do
+    struct!(__MODULE__, ConnectionString.parse(connection_string))
+  end
+
+  @doc """
   Returns the storage context for the Azure storage emulator.
   """
   def development_factory(host \\ "127.0.0.1") do
@@ -31,6 +45,7 @@ defmodule Azure.Storage do
       account_name: @development_account_name,
       account_key: @development_account_key,
       host: host,
+      default_endpoints_protocol: "http",
       is_development_factory: true
     }
   end
@@ -51,13 +66,25 @@ defmodule Azure.Storage do
         :table_service -> 10_002
       end
 
-    %URI{scheme: "http", host: host, port: port, path: "/" <> context.account_name}
+    %URI{
+      scheme: default_endpoints_protocol(context),
+      host: host,
+      port: port,
+      path: "/" <> context.account_name
+    }
     |> URI.to_string()
   end
 
   def endpoint_url(context = %__MODULE__{}, service) when is_atom(service),
-    do: %URI{scheme: "https", host: endpoint_hostname(context, service)} |> URI.to_string()
+    do:
+      %URI{scheme: default_endpoints_protocol(context), host: endpoint_hostname(context, service)}
+      |> URI.to_string()
 
   def endpoint_hostname(context = %__MODULE__{}, service) when is_atom(service),
-    do: "#{context.account_name}.#{@endpoint_names[service]}.#{context.cloud_environment_suffix}"
+    do: "#{context.account_name}.#{@endpoint_names[service]}.#{context.endpoint_suffix}"
+
+  def default_endpoints_protocol(%__MODULE__{
+        default_endpoints_protocol: default_endpoints_protocol
+      }),
+      do: default_endpoints_protocol
 end
