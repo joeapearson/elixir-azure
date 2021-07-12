@@ -75,6 +75,7 @@ defmodule Azure.Storage.BlobTest do
   end
 
   describe "put_blob_by_url" do
+    @tag :skip
     test "puts a blob from a URL", %{
       container_context: container_context,
       storage_context: storage_context

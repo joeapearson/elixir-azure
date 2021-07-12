@@ -4,6 +4,7 @@ defmodule Azure.Storage.BlobStorageTest do
   use ExUnit.Case, async: true
 
   @moduletag :external
+  @moduletag :skip
 
   import Azure.Factory
 
