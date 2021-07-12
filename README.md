@@ -22,10 +22,6 @@ def deps do
 end
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/azure](https://hexdocs.pm/azure).
-
 ## Running tests
 
 Tests are run against [Azurite](https://github.com/Azure/Azurite), an Azure storage emulator, using
@@ -35,6 +31,12 @@ Docker Compose:
 $ docker compose up -d
 $ mix test --include external
 ```
+
+## Documentation
+
+[https://hexdocs.pm/azure](https://hexdocs.pm/azure)
+
+For usage examples check out the tests.
 
 ## Credits
 
