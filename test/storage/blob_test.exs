@@ -45,16 +45,16 @@ defmodule Azure.Storage.BlobTest do
     test "set blob properties", %{blob: blob} do
       content_type = "x-my-new-content-type"
 
-      {:ok, %{status: 200, properties: blob_properties}} =
-               blob |> Blob.get_blob_properties()
+      {:ok, %{status: 200, properties: blob_properties}} = blob |> Blob.get_blob_properties()
 
       refute blob_properties.content_type == content_type
 
       blob_properties = blob_properties |> Map.put(:content_type, content_type)
 
-      assert {:ok, %{ status: 200}} = blob |> Blob.set_blob_properties(blob_properties)
+      assert {:ok, %{status: 200}} = blob |> Blob.set_blob_properties(blob_properties)
 
-      assert {:ok, %{ status: 200, properties: blob_properties }} = blob |> Blob.get_blob_properties()
+      assert {:ok, %{status: 200, properties: blob_properties}} =
+               blob |> Blob.get_blob_properties()
 
       assert blob_properties.content_type == content_type
     end

@@ -211,7 +211,6 @@ defmodule Azure.Storage.Blob do
     end
   end
 
-
   @allowed_set_blob_headers [
     "x-ms-blob-cache-control",
     "x-ms-blob-content-type",
@@ -226,7 +225,7 @@ defmodule Azure.Storage.Blob do
           container: %Container{storage_context: context, container_name: container_name},
           blob_name: blob_name
         },
-        %BlobProperties{} = blob_properties
+        blob_properties = %BlobProperties{}
       ) do
     headers =
       blob_properties
@@ -241,7 +240,6 @@ defmodule Azure.Storage.Blob do
       |> url("/#{container_name}/#{blob_name}")
       |> add_param(:query, :comp, "properties")
       |> add_headers(headers)
-      |> IO.inspect
       |> sign_and_call(:blob_service)
 
     case response do
@@ -253,12 +251,24 @@ defmodule Azure.Storage.Blob do
     end
   end
 
-  defp transform_set_blob_property_header({"cache-control", value}), do: {"x-ms-blob-cache-control", value}
-  defp transform_set_blob_property_header({"content-type", value}), do: {"x-ms-blob-content-type", value}
-  defp transform_set_blob_property_header({"content-md5", value}), do: {"x-ms-blob-content-md5", value}
-  defp transform_set_blob_property_header({"content-encoding", value}), do: {"x-ms-blob-content-encoding", value}
-  defp transform_set_blob_property_header({"content-language", value}), do: {"x-ms-blob-content-language", value}
-  defp transform_set_blob_property_header({"content-disposition", value}), do: {"x-ms-blob-content-disposition", value}
+  defp transform_set_blob_property_header({"cache-control", value}),
+    do: {"x-ms-blob-cache-control", value}
+
+  defp transform_set_blob_property_header({"content-type", value}),
+    do: {"x-ms-blob-content-type", value}
+
+  defp transform_set_blob_property_header({"content-md5", value}),
+    do: {"x-ms-blob-content-md5", value}
+
+  defp transform_set_blob_property_header({"content-encoding", value}),
+    do: {"x-ms-blob-content-encoding", value}
+
+  defp transform_set_blob_property_header({"content-language", value}),
+    do: {"x-ms-blob-content-language", value}
+
+  defp transform_set_blob_property_header({"content-disposition", value}),
+    do: {"x-ms-blob-content-disposition", value}
+
   defp transform_set_blob_property_header(header), do: header
 
   def put_blob(

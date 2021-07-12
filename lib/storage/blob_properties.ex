@@ -130,11 +130,13 @@ defmodule Azure.Storage.BlobProperties do
   Serialises a `BlobProperties` into headers as a list of key / value tuples.
   """
   @spec serialise(properties :: __MODULE__.t()) :: headers()
-  def serialise(%__MODULE__{} = properties) do
+  def serialise(properties = %__MODULE__{}) do
     @headers
     |> Enum.reduce([], fn {header, key, type}, acc ->
       case Map.get(properties, key) do
-        nil -> acc
+        nil ->
+          acc
+
         value ->
           [{header, encode(value, type)} | acc]
       end
