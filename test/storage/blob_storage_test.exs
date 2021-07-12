@@ -8,6 +8,7 @@ defmodule Azure.Storage.BlobStorageTest do
   import Azure.Factory
 
   alias Azure.Storage.BlobStorage
+  alias Azure.Storage.BlobStorage.ServiceProperties
 
   setup do
     storage_context = build(:storage_context)
@@ -26,7 +27,7 @@ defmodule Azure.Storage.BlobStorageTest do
 
   describe "get_blob_service_properties" do
     test "gets blob service properties", %{storage_context: storage_context} do
-      assert {:ok, %{service_properties: %BlobStorage.ServiceProperties{}}} =
+      assert {:ok, %{service_properties: %ServiceProperties{}}} =
                storage_context |> BlobStorage.get_blob_service_properties()
     end
   end
@@ -41,7 +42,7 @@ defmodule Azure.Storage.BlobStorageTest do
         allowed_headers: [""]
       }
 
-      cors_rule = rule |> BlobStorage.ServiceProperties.CorsRule.to_struct()
+      cors_rule = rule |> ServiceProperties.CorsRule.to_struct()
 
       {:ok, %{service_properties: service_properties}} =
         storage_context |> BlobStorage.get_blob_service_properties()

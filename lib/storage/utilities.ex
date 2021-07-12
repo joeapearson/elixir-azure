@@ -3,7 +3,7 @@ defmodule Azure.Storage.Utilities do
   Utilities
   """
 
-  @doc ~S"""
+  @doc """
   Adds a value to a list, which is a value in a dictionary.
 
   ## Examples
@@ -29,7 +29,7 @@ defmodule Azure.Storage.Utilities do
         end
       )
 
-  @doc ~S"""
+  @doc """
   Converts a list of atoms to a representative string, based on a mapping table.
 
   ## Examples
@@ -48,7 +48,7 @@ defmodule Azure.Storage.Utilities do
       |> Enum.filter(&(&1 != nil))
       |> Enum.join("")
 
-  @doc ~S"""
+  @doc """
   Reverses a map
 
   ## Examples
@@ -65,7 +65,7 @@ defmodule Azure.Storage.Utilities do
   def reverse_map(mapping),
     do: mapping |> Enum.to_list() |> Enum.map(fn {k, v} -> {v, k} end) |> Map.new()
 
-  @doc ~S"""
+  @doc """
   Converts a string with shortcuts back into a list of atoms.
 
   ## Examples
