@@ -83,4 +83,13 @@ defmodule Azure.Storage.Utilities do
     |> Enum.filter(&(&1 != nil))
     |> Enum.to_list()
   end
+
+  @doc """
+  Converts a string literal "true" or "false" into appropriate boolean.
+
+  All other values return `false`.
+  """
+  def to_bool("true"), do: true
+  def to_bool("false"), do: false
+  def to_bool(_), do: false
 end

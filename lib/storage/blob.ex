@@ -6,7 +6,7 @@ defmodule Azure.Storage.Blob do
   import SweetXml
   use NamedArgs
   import Azure.Storage.RequestBuilder
-  alias Azure.Storage.Container
+  alias Azure.Storage.{BlobProperties, Container}
 
   @enforce_keys [:container, :blob_name]
   @max_concurrency 3
@@ -188,6 +188,79 @@ defmodule Azure.Storage.Blob do
     end
   end
 
+  def get_blob_properties(%__MODULE__{
+        container: %Container{storage_context: context, container_name: container_name},
+        blob_name: blob_name
+      }) do
+    response =
+      context
+      |> new_azure_storage_request()
+      |> method(:head)
+      |> url("/#{container_name}/#{blob_name}")
+      |> sign_and_call(:blob_service)
+
+    case response do
+      %{status: status} when 400 <= status and status < 500 ->
+        {:error, response |> create_error_response()}
+
+      %{status: 200} ->
+        {:ok,
+         response
+         |> create_success_response()
+         |> Map.put(:properties, response.headers |> BlobProperties.deserialise())}
+    end
+  end
+
+
+  @allowed_set_blob_headers [
+    "x-ms-blob-cache-control",
+    "x-ms-blob-content-type",
+    "x-ms-blob-content-md5",
+    "x-ms-blob-content-encoding",
+    "x-ms-blob-content-language",
+    "x-ms-blob-content-disposition"
+  ]
+
+  def set_blob_properties(
+        %__MODULE__{
+          container: %Container{storage_context: context, container_name: container_name},
+          blob_name: blob_name
+        },
+        %BlobProperties{} = blob_properties
+      ) do
+    headers =
+      blob_properties
+      |> BlobProperties.serialise()
+      |> Enum.map(&transform_set_blob_property_header/1)
+      |> Enum.filter(fn {header, _value} -> Enum.member?(@allowed_set_blob_headers, header) end)
+
+    response =
+      context
+      |> new_azure_storage_request()
+      |> method(:put)
+      |> url("/#{container_name}/#{blob_name}")
+      |> add_param(:query, :comp, "properties")
+      |> add_headers(headers)
+      |> IO.inspect
+      |> sign_and_call(:blob_service)
+
+    case response do
+      %{status: status} when 400 <= status and status < 500 ->
+        {:error, response |> create_error_response()}
+
+      %{status: 200} ->
+        {:ok, response |> create_success_response()}
+    end
+  end
+
+  defp transform_set_blob_property_header({"cache-control", value}), do: {"x-ms-blob-cache-control", value}
+  defp transform_set_blob_property_header({"content-type", value}), do: {"x-ms-blob-content-type", value}
+  defp transform_set_blob_property_header({"content-md5", value}), do: {"x-ms-blob-content-md5", value}
+  defp transform_set_blob_property_header({"content-encoding", value}), do: {"x-ms-blob-content-encoding", value}
+  defp transform_set_blob_property_header({"content-language", value}), do: {"x-ms-blob-content-language", value}
+  defp transform_set_blob_property_header({"content-disposition", value}), do: {"x-ms-blob-content-disposition", value}
+  defp transform_set_blob_property_header(header), do: header
+
   def put_blob(
         %__MODULE__{
           container: %Container{storage_context: context, container_name: container_name},
@@ -217,6 +290,10 @@ defmodule Azure.Storage.Blob do
       %{status: 201} ->
         {:ok, response |> create_success_response()}
     end
+  end
+
+  defp add_headers(request, headers) do
+    Enum.reduce(headers, request, fn {k, v}, request -> request |> add_header(k, v) end)
   end
 
   defp add_headers_from_opts(request, opts) do

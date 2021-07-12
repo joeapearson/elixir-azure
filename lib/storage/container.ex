@@ -5,6 +5,7 @@ defmodule Azure.Storage.Container do
 
   import SweetXml
   import Azure.Storage.RequestBuilder
+  import Azure.Storage.Utilities, only: [to_bool: 1]
 
   alias Azure.Storage
   alias Azure.Storage.{BlobPolicy, DateTimeUtils}

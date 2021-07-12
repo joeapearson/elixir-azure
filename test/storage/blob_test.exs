@@ -5,7 +5,7 @@ defmodule Azure.Storage.BlobTest do
 
   @moduletag :external
 
-  alias Azure.Storage.{Blob, Container}
+  alias Azure.Storage.{Blob, BlobProperties, Container}
 
   import Azure.Factory
 
@@ -23,6 +23,41 @@ defmodule Azure.Storage.BlobTest do
     {:ok, _response} = Container.ensure_container(container_context)
 
     %{storage_context: storage_context, container_context: container_context}
+  end
+
+  describe "blob properties" do
+    setup %{container_context: container_context} do
+      blob_name = "my_blob"
+      blob_data = "my_blob_data"
+      blob = container_context |> Blob.new(blob_name)
+
+      blob |> Blob.delete_blob()
+      {:ok, %{status: 201}} = blob |> Blob.put_blob(blob_data)
+
+      %{blob: blob}
+    end
+
+    test "gets blob properties", %{blob: blob} do
+      assert {:ok, %{status: 200, properties: %BlobProperties{}}} =
+               blob |> Blob.get_blob_properties()
+    end
+
+    test "set blob properties", %{blob: blob} do
+      content_type = "x-my-new-content-type"
+
+      {:ok, %{status: 200, properties: blob_properties}} =
+               blob |> Blob.get_blob_properties()
+
+      refute blob_properties.content_type == content_type
+
+      blob_properties = blob_properties |> Map.put(:content_type, content_type)
+
+      assert {:ok, %{ status: 200}} = blob |> Blob.set_blob_properties(blob_properties)
+
+      assert {:ok, %{ status: 200, properties: blob_properties }} = blob |> Blob.get_blob_properties()
+
+      assert blob_properties.content_type == content_type
+    end
   end
 
   describe "put_blob" do
@@ -66,7 +101,7 @@ defmodule Azure.Storage.BlobTest do
       assert {:ok, %{status: 201}} = blob |> Blob.put_blob_from_url(url)
 
       assert {:ok, %{status: 200, body: destination_body, headers: destination_headers}} =
-               blob |> Blob.get_blob() |> IO.inspect()
+               blob |> Blob.get_blob()
 
       assert destination_body == expected_contents
 

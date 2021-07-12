@@ -4,6 +4,8 @@ defmodule Azure.Storage.RequestBuilder do
   """
 
   import SweetXml
+  import Azure.Storage.Utilities, only: [to_bool: 1]
+
   alias Azure.Storage
   alias Azure.Storage.{ApiVersion, Container, DateTimeUtils, RestClient}
 
@@ -282,14 +284,6 @@ defmodule Azure.Storage.RequestBuilder do
   end
 
   def identity(x), do: x
-  def to_bool("true"), do: true
-  def to_bool("false"), do: false
-  def to_bool(_), do: false
-
-  def to_integer!(x) do
-    {i, ""} = x |> Integer.parse()
-    i
-  end
 
   def create_error_response(response = %{}) do
     response
@@ -315,6 +309,8 @@ defmodule Azure.Storage.RequestBuilder do
               |> Map.merge(body |> xmap(xml_parser.()))
           end
         end).()
+
+    # |> (fn response = %{headers: headers} ->)
   end
 
   @response_headers [
@@ -328,12 +324,11 @@ defmodule Azure.Storage.RequestBuilder do
     {"x-ms-lease-state", :x_ms_lease_state},
     {"x-ms-blob-type", :x_ms_blob_type},
     {"x-ms-lease-status", :x_ms_lease_status},
-    {"x-ms-request-server-encrypted", :x_ms_request_server_encrypted, &__MODULE__.to_bool/1},
+    {"x-ms-request-server-encrypted", :x_ms_request_server_encrypted, &to_bool/1},
     {"x-ms-delete-type-permanent", :x_ms_delete_type_permanent},
-    {"x-ms-has-immutability-policy", :x_ms_has_immutability_policy, &__MODULE__.to_bool/1},
-    {"x-ms-has-legal-hold", :x_ms_has_legal_hold, &__MODULE__.to_bool/1},
-    {"x-ms-approximate-messages-count", :x_ms_approximate_messages_count,
-     &__MODULE__.to_integer!/1},
+    {"x-ms-has-immutability-policy", :x_ms_has_immutability_policy, &to_bool/1},
+    {"x-ms-has-legal-hold", :x_ms_has_legal_hold, &to_bool/1},
+    {"x-ms-approximate-messages-count", :x_ms_approximate_messages_count, &String.to_integer/1},
     {"x-ms-error-code", :x_ms_error_code},
     {"x-ms-blob-public-access", :x_ms_blob_public_access, &Container.parse_access_level/1},
     {"x-ms-blob-cache-control", :x_ms_blob_cache_control},
