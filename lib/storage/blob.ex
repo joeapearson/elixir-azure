@@ -352,7 +352,7 @@ defmodule Azure.Storage.Blob do
       |> Keyword.put(:blob_type, "BlockBlob")
       |> Keyword.put(:copy_source, url)
 
-    {content_type, opts} = opts |> Keyword.pop(:content_type)
+    {content_opts, opts} = opts |> Keyword.split([:content_type, :content_encoding, :content_disposition, :content_language])
     {content_type_workaround_enabled, opts} = opts |> Keyword.pop(:content_type_workaround, false)
 
     response =
@@ -372,7 +372,7 @@ defmodule Azure.Storage.Blob do
                workaround_for_put_blob_from_url(
                  blob,
                  url,
-                 content_type,
+                 content_opts,
                  content_type_workaround_enabled
                ) do
           {:ok, response |> create_success_response()}
@@ -382,9 +382,9 @@ defmodule Azure.Storage.Blob do
 
   # Workaround for a bug in Azure Storage where original content-type is lost on put_blob_from_url
   # requests https://github.com/joeapearson/elixir-azure/issues/2
-  defp workaround_for_put_blob_from_url(_blob, _url, _content_type, false) do
+  defp workaround_for_put_blob_from_url(_blob, _url, _content_opts, false) do
     Logger.warning("""
-    Your blob's content-type metadata may not have been correctly copied.
+    Your blob's content-* metadata may not have been correctly copied.
 
     Set `content_type_workaround: true` when calling `Blob.put_blob_from_url/2` to work around.
 
@@ -394,25 +394,18 @@ defmodule Azure.Storage.Blob do
     {:ok, nil}
   end
 
-  defp workaround_for_put_blob_from_url(blob, url, nil, true) do
+  defp workaround_for_put_blob_from_url(blob, url, [], true) do
     # In this case we have to do the work of finding out what the original source content-type was
     # and then setting it on the blob.  Results in many requests and accordingly is less reliable.
 
     with {:ok, %{status: 200, headers: source_headers}} <- Tesla.head(url) do
-      source_content_type_header = List.keyfind(source_headers, "content-type", 0)
-
-      case source_content_type_header do
-        nil ->
-          {:ok, nil}
-
-        {"content-type", content_type} ->
-          update_blob_properties(blob, %BlobProperties{content_type: content_type})
-      end
+      blob_properties = BlobProperties.deserialise(source_headers)
+      update_blob_properties(blob, blob_properties)
     end
   end
 
-  defp workaround_for_put_blob_from_url(blob, _url, content_type, true) do
-    blob |> update_blob_properties(%BlobProperties{content_type: content_type})
+  defp workaround_for_put_blob_from_url(blob, _url, content_type_attrs, true) do
+    blob |> update_blob_properties(struct!(BlobProperties, content_type_attrs))
   end
 
   @spec upload_file(Container.t(), String.t()) :: {:ok, map} | {:error, map}
