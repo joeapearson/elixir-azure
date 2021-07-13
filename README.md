@@ -9,8 +9,7 @@ Includes support for Azure Storage APIs.
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `azure` to your list of dependencies in `mix.exs`:
+Add `azure` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
