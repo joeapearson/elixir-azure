@@ -103,7 +103,8 @@ defmodule Azure.Storage.BlobTest do
 
       blob = container_context |> Blob.new(blob_name)
 
-      assert {:ok, %{status: 201}} = blob |> Blob.put_blob_from_url(url, content_type_workaround: true)
+      assert {:ok, %{status: 201}} =
+               blob |> Blob.put_blob_from_url(url, content_type_workaround: true)
 
       assert {:ok, %{status: 200, body: destination_body, headers: destination_headers}} =
                blob |> Blob.get_blob()

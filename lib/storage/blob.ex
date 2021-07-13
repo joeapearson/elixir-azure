@@ -368,7 +368,13 @@ defmodule Azure.Storage.Blob do
         {:error, response |> create_error_response()}
 
       %{status: 201} ->
-        with {:ok, _response} <- workaround_for_put_blob_from_url(blob, url, content_type, content_type_workaround_enabled) do
+        with {:ok, _response} <-
+               workaround_for_put_blob_from_url(
+                 blob,
+                 url,
+                 content_type,
+                 content_type_workaround_enabled
+               ) do
           {:ok, response |> create_success_response()}
         end
     end
@@ -377,15 +383,14 @@ defmodule Azure.Storage.Blob do
   # Workaround for a bug in Azure Storage where original content-type is lost on put_blob_from_url
   # requests https://github.com/joeapearson/elixir-azure/issues/2
   defp workaround_for_put_blob_from_url(_blob, _url, _content_type, false) do
-    Logger.warning(
-    """
+    Logger.warning("""
     Your blob's content-type metadata may not have been correctly copied.
 
     Set `content_type_workaround: true` when calling `Blob.put_blob_from_url/2` to work around.
 
     See https://github.com/joeapearson/elixir-azure/issues/2
-    """
-    )
+    """)
+
     {:ok, nil}
   end
 
@@ -393,11 +398,13 @@ defmodule Azure.Storage.Blob do
     # In this case we have to do the work of finding out what the original source content-type was
     # and then setting it on the blob.  Results in many requests and accordingly is less reliable.
 
-    with {:ok, %{ status: 200, headers: source_headers}} <- Tesla.head(url) do
+    with {:ok, %{status: 200, headers: source_headers}} <- Tesla.head(url) do
       source_content_type_header = List.keyfind(source_headers, "content-type", 0)
 
       case source_content_type_header do
-        nil -> {:ok, nil}
+        nil ->
+          {:ok, nil}
+
         {"content-type", content_type} ->
           update_blob_properties(blob, %BlobProperties{content_type: content_type})
       end
