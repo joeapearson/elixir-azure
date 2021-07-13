@@ -220,6 +220,14 @@ defmodule Azure.Storage.Blob do
     "x-ms-blob-content-disposition"
   ]
 
+  @doc """
+  Sets blob properties.
+
+  Follows the same behaviour as the underlying REST API where setting one property will also
+  implicitly set others to nil, unless you explitly set them in this request.
+
+  See <https://docs.microsoft.com/en-us/rest/api/storageservices/set-blob-properties>
+  """
   def set_blob_properties(
         %__MODULE__{
           container: %Container{storage_context: context, container_name: container_name},
@@ -248,6 +256,19 @@ defmodule Azure.Storage.Blob do
 
       %{status: 200} ->
         {:ok, response |> create_success_response()}
+    end
+  end
+
+  @doc """
+  Updates blob properties.
+
+  Similar to `set_blob_properties/2` but keeps existing values by first performing
+  `get_blob_properties/2`, merging the result and handing it over to `set_blob_properties/2`.
+  """
+  def update_blob_properties(blob, blob_properties) do
+    with {:ok, %{properties: existing_blob_properties}} <- blob |> get_blob_properties() do
+      merged_properties = Map.merge(existing_blob_properties, blob_properties)
+      blob |> set_blob_properties(merged_properties)
     end
   end
 
@@ -322,7 +343,7 @@ defmodule Azure.Storage.Blob do
         %__MODULE__{
           container: %Container{storage_context: context, container_name: container_name},
           blob_name: blob_name
-        },
+        } = blob,
         url,
         opts \\ []
       ) do
@@ -330,6 +351,9 @@ defmodule Azure.Storage.Blob do
       opts
       |> Keyword.put(:blob_type, "BlockBlob")
       |> Keyword.put(:copy_source, url)
+
+    {content_type, opts} = opts |> Keyword.pop(:content_type)
+    {content_type_workaround_enabled, opts} = opts |> Keyword.pop(:content_type_workaround, false)
 
     response =
       context
@@ -344,8 +368,44 @@ defmodule Azure.Storage.Blob do
         {:error, response |> create_error_response()}
 
       %{status: 201} ->
-        {:ok, response |> create_success_response()}
+        with {:ok, _response} <- workaround_for_put_blob_from_url(blob, url, content_type, content_type_workaround_enabled) do
+          {:ok, response |> create_success_response()}
+        end
     end
+  end
+
+  # Workaround for a bug in Azure Storage where original content-type is lost on put_blob_from_url
+  # requests https://github.com/joeapearson/elixir-azure/issues/2
+  defp workaround_for_put_blob_from_url(_blob, _url, _content_type, false) do
+    Logger.warning(
+    """
+    Your blob's content-type metadata may not have been correctly copied.
+
+    Set `content_type_workaround: true` when calling `Blob.put_blob_from_url/2` to work around.
+
+    See https://github.com/joeapearson/elixir-azure/issues/2
+    """
+    )
+    {:ok, nil}
+  end
+
+  defp workaround_for_put_blob_from_url(blob, url, nil, true) do
+    # In this case we have to do the work of finding out what the original source content-type was
+    # and then setting it on the blob.  Results in many requests and accordingly is less reliable.
+
+    with {:ok, %{ status: 200, headers: source_headers}} <- Tesla.head(url) do
+      source_content_type_header = List.keyfind(source_headers, "content-type", 0)
+
+      case source_content_type_header do
+        nil -> {:ok, nil}
+        {"content-type", content_type} ->
+          update_blob_properties(blob, %BlobProperties{content_type: content_type})
+      end
+    end
+  end
+
+  defp workaround_for_put_blob_from_url(blob, _url, content_type, true) do
+    blob |> update_blob_properties(%BlobProperties{content_type: content_type})
   end
 
   @spec upload_file(Container.t(), String.t()) :: {:ok, map} | {:error, map}

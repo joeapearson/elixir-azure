@@ -75,7 +75,6 @@ defmodule Azure.Storage.BlobTest do
   end
 
   describe "put_blob_by_url" do
-    @tag :skip
     test "puts a blob from a URL", %{
       container_context: container_context,
       storage_context: storage_context
@@ -84,9 +83,6 @@ defmodule Azure.Storage.BlobTest do
 
       url =
         "https://raw.githubusercontent.com/joeapearson/elixir-azure/main/test/storage/#{blob_name}"
-
-      %{headers: source_headers} = Tesla.head!(url)
-      source_content_type = header(source_headers, "content-type")
 
       expected_contents =
         if storage_context.is_development_factory do
@@ -97,9 +93,17 @@ defmodule Azure.Storage.BlobTest do
           File.read!(Path.expand(blob_name, __DIR__))
         end
 
+      %{headers: source_headers} = Tesla.head!(url)
+      source_content_type = header(source_headers, "content-type")
+      source_content_encoding = header(source_headers, "content-encoding")
+      source_content_language = header(source_headers, "content-language")
+      source_content_disposition = header(source_headers, "content-disposition")
+
+      assert is_binary(source_content_type)
+
       blob = container_context |> Blob.new(blob_name)
 
-      assert {:ok, %{status: 201}} = blob |> Blob.put_blob_from_url(url)
+      assert {:ok, %{status: 201}} = blob |> Blob.put_blob_from_url(url, content_type_workaround: true)
 
       assert {:ok, %{status: 200, body: destination_body, headers: destination_headers}} =
                blob |> Blob.get_blob()
@@ -107,10 +111,14 @@ defmodule Azure.Storage.BlobTest do
       assert destination_body == expected_contents
 
       destination_content_type = header(destination_headers, "content-type")
-
-      assert is_binary(source_content_type)
+      destination_content_encoding = header(destination_headers, "content-encoding")
+      destination_content_language = header(destination_headers, "content-language")
+      destination_content_disposition = header(destination_headers, "content-disposition")
 
       assert source_content_type == destination_content_type
+      assert source_content_encoding == destination_content_encoding
+      assert source_content_language == destination_content_language
+      assert source_content_disposition == destination_content_disposition
     end
   end
 end
