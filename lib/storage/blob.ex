@@ -340,10 +340,10 @@ defmodule Azure.Storage.Blob do
   defp header_for_opt(:content_encoding), do: "x-ms-blob-content-encoding"
 
   def put_blob_from_url(
-        %__MODULE__{
+        blob = %__MODULE__{
           container: %Container{storage_context: context, container_name: container_name},
           blob_name: blob_name
-        } = blob,
+        },
         url,
         opts \\ []
       ) do
