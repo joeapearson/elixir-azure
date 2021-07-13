@@ -12,7 +12,7 @@ Add `azure` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:azure, "~> 0.3.0"}
+    {:azure, "~> 0.3.1"}
   ]
 end
 ```
