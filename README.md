@@ -3,9 +3,7 @@
 
 # Elixir Azure
 
-Basic Azure support for Elixir.
-
-Includes support for Azure Storage APIs.
+Azure storage support for Elixir.
 
 ## Installation
 
