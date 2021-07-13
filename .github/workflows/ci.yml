@@ -5,9 +5,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '14'
       - uses: erlef/setup-beam@v1
         with:
           otp-version: "24.0"
@@ -21,8 +18,7 @@ jobs:
           key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
           restore-keys: |
             ${{ runner.os }}-mix-
-      - run: npm install azurite
-      - run: npx azurite-blob &
+      - run: docker-compose up -d
       - run: mix deps.get
       - run: mix credo --strict
       - run: mix dialyzer
