@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.3.0 - 2021-07-12
+
 ### Added
 
 - Support for Azure Storage connection strings
+- Support for getting, setting and updating blob properties
+- #3 Workaround for loss of `content-type` when using `Blob.put_blob_from_url/2`
 
 ## 0.2.3 - 2021-07-05
 
