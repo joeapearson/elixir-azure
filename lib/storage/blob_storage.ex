@@ -141,6 +141,8 @@ defmodule Azure.Storage.BlobStorage do
     defmodule RetentionPolicy do
       @moduledoc false
       defstruct [:enabled, :days]
+
+      def to_struct(nil), do: %__MODULE__{enabled: false, days: 0}
       def to_struct(data), do: struct(__MODULE__, data)
     end
 
@@ -314,8 +316,10 @@ defmodule Azure.Storage.BlobStorage do
               ~x"./AllowedHeaders/text()"s |> transform_by(&(&1 |> String.split(",")))
           ],
           default_service_version: ~x"/StorageServiceProperties/DefaultServiceVersion/text()"s,
+          # delete_retention_policy is not present in responses from Azurite (the storage simulator)
+          # so we have to make this property optional with the `o` modifier passed to `~x`.
           delete_retention_policy: [
-            ~x"./DeleteRetentionPolicy",
+            ~x"./DeleteRetentionPolicy"o,
             enabled: ~x"./Enabled/text()"s |> transform_by(&to_bool/1),
             days: ~x"./Days/text()"I
           ]

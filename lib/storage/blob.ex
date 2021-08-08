@@ -352,7 +352,10 @@ defmodule Azure.Storage.Blob do
       |> Keyword.put(:blob_type, "BlockBlob")
       |> Keyword.put(:copy_source, url)
 
-    {content_opts, opts} = opts |> Keyword.split([:content_type, :content_encoding, :content_disposition, :content_language])
+    {content_opts, opts} =
+      opts
+      |> Keyword.split([:content_type, :content_encoding, :content_disposition, :content_language])
+
     {content_type_workaround_enabled, opts} = opts |> Keyword.pop(:content_type_workaround, false)
 
     response =
