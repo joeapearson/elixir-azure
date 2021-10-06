@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- `Blob.get_blob_properties` no longer raises when the blob is not found.
+
 ## 0.3.2 - 2021-08-08
 
 ### Fixed
