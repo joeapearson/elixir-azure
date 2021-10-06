@@ -20,6 +20,8 @@ defmodule Azure.Storage.BlobTest do
     storage_context = build(:storage_context)
     container_context = storage_context |> Container.new("blob-test")
 
+    Container.delete_container(container_context)
+
     {:ok, _response} = Container.ensure_container(container_context)
 
     %{storage_context: storage_context, container_context: container_context}
@@ -27,19 +29,26 @@ defmodule Azure.Storage.BlobTest do
 
   describe "blob properties" do
     setup %{container_context: container_context} do
-      blob_name = "my_blob"
-      blob_data = "my_blob_data"
+      blob_name = build(:blob_name)
+      blob_data = build(:blob_data)
       blob = container_context |> Blob.new(blob_name)
 
       blob |> Blob.delete_blob()
       {:ok, %{status: 201}} = blob |> Blob.put_blob(blob_data)
 
-      %{blob: blob}
+      %{blob: blob, container_context: container_context}
     end
 
     test "gets blob properties", %{blob: blob} do
       assert {:ok, %{status: 200, properties: %BlobProperties{}}} =
                blob |> Blob.get_blob_properties()
+    end
+
+    test "error when blob not found", %{container_context: container_context} do
+      blob_name = build(:blob_name)
+      blob = container_context |> Blob.new(blob_name)
+
+      assert {:error, %{status: 404}} = blob |> Blob.get_blob_properties()
     end
 
     test "set blob properties", %{blob: blob} do

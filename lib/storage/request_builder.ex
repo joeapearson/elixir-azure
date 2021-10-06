@@ -288,7 +288,7 @@ defmodule Azure.Storage.RequestBuilder do
   def create_error_response(response = %{}) do
     response
     |> create_success_response(xml_body_parser: &__MODULE__.Responses.error_response/0)
-    |> Map.update!(:error_message, &String.split(&1, "\n"))
+    |> Map.update(:error_message, "", &String.split(&1, "\n"))
   end
 
   def create_success_response(response, opts \\ []) do
@@ -299,15 +299,19 @@ defmodule Azure.Storage.RequestBuilder do
     |> Map.put(:body, response.body)
     |> copy_response_headers_into_map()
     |> copy_x_ms_meta_headers_into_map()
-    |> (fn response = %{body: body} ->
-          case opts |> Keyword.get(:xml_body_parser) do
-            nil ->
-              response
+    |> (fn
+          response = %{body: ""} ->
+            response
 
-            xml_parser when is_function(xml_parser) ->
-              response
-              |> Map.merge(body |> xmap(xml_parser.()))
-          end
+          response = %{body: body} ->
+            case opts |> Keyword.get(:xml_body_parser) do
+              nil ->
+                response
+
+              xml_parser when is_function(xml_parser) ->
+                response
+                |> Map.merge(body |> xmap(xml_parser.()))
+            end
         end).()
 
     # |> (fn response = %{headers: headers} ->)

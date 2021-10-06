@@ -5,6 +5,10 @@ defmodule Azure.Factory do
 
   use ExMachina
 
+  def blob_data_factory(_attrs), do: sequence("blob_data")
+
+  def blob_name_factory(_attrs), do: sequence("blob_name")
+
   def connection_string_factory(attrs) do
     [
       [
