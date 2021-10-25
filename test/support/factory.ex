@@ -23,6 +23,10 @@ defmodule Azure.Factory do
     |> Enum.join(";")
   end
 
+  def content_type_factory(_attrs), do: sequence("application/type")
+
+  def content_md5_factory(_attrs), do: sequence("md5") |> Base.encode64()
+
   def storage_context_factory do
     Azure.Storage.development_factory()
   end
