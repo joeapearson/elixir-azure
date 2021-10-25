@@ -386,13 +386,15 @@ defmodule Azure.Storage.Blob do
   # Workaround for a bug in Azure Storage where original content-type is lost on put_blob_from_url
   # requests https://github.com/joeapearson/elixir-azure/issues/2
   defp workaround_for_put_blob_from_url(_blob, _url, _content_opts, false) do
-    Logger.warning("""
-    Your blob's content-* metadata may not have been correctly copied.
+    unless suppress_workaround_for_put_blob_from_url_warning?() do
+      Logger.warning("""
+      Your blob's content-* metadata may not have been correctly copied.
 
-    Set `content_type_workaround: true` when calling `Blob.put_blob_from_url/2` to work around.
+      Set `content_type_workaround: true` when calling `Blob.put_blob_from_url/2` to work around.
 
-    See https://github.com/joeapearson/elixir-azure/issues/2
-    """)
+      See https://github.com/joeapearson/elixir-azure/issues/2
+      """)
+    end
 
     {:ok, nil}
   end
@@ -410,6 +412,9 @@ defmodule Azure.Storage.Blob do
   defp workaround_for_put_blob_from_url(blob, _url, content_type_attrs, true) do
     blob |> update_blob_properties(struct!(BlobProperties, content_type_attrs))
   end
+
+  defp suppress_workaround_for_put_blob_from_url_warning?(),
+    do: config() |> Keyword.get(:suppress_workaround_for_put_blob_from_url_warning?, false)
 
   @spec upload_file(Container.t(), String.t()) :: {:ok, map} | {:error, map}
   def upload_file(container = %Container{}, source_path, blob_name \\ nil) do
@@ -519,4 +524,6 @@ defmodule Azure.Storage.Blob do
         {:ok, response |> create_success_response()}
     end
   end
+
+  defp config(), do: Application.get_env(:azure, __MODULE__, [])
 end
