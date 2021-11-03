@@ -336,7 +336,8 @@ defmodule Azure.Storage.RequestBuilder do
     {"x-ms-error-code", :x_ms_error_code},
     {"x-ms-blob-public-access", :x_ms_blob_public_access, &Container.parse_access_level/1},
     {"x-ms-blob-cache-control", :x_ms_blob_cache_control},
-    {"x-ms-cache-control", :x_ms_cache_control}
+    {"x-ms-cache-control", :x_ms_cache_control},
+    {"x-ms-copy-status", :x_ms_copy_status}
   ]
 
   defp copy_response_headers_into_map(response = %{}) do

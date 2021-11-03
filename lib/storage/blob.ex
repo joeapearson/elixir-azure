@@ -5,6 +5,7 @@ defmodule Azure.Storage.Blob do
   require Logger
   import SweetXml
   use NamedArgs
+
   import Azure.Storage.RequestBuilder
   alias Azure.Storage.{BlobProperties, Container}
 
@@ -524,6 +525,74 @@ defmodule Azure.Storage.Blob do
         {:ok, response |> create_success_response()}
     end
   end
+
+  def copy_stream(
+        %__MODULE__{} = source,
+        %__MODULE__{
+          container: %Container{storage_context: context, container_name: container_name},
+          blob_name: blob_name
+        } = target,
+        opts \\ []
+      ) do
+    opts =
+      opts
+      |> Keyword.put(:copy_source, url(source))
+
+    poll_interval = Keyword.get(opts, :poll_interval, 5000)
+
+    Stream.resource(
+      fn ->
+        context
+        |> new_azure_storage_request()
+        |> method(:put)
+        |> url("/#{container_name}/#{blob_name}")
+        |> add_headers_from_opts(opts)
+        |> sign_and_call(:blob_service)
+      end,
+      fn
+        nil ->
+          :timer.sleep(poll_interval)
+          {[get_blob_properties(target)], nil}
+
+        %{status: status} = response when 400 <= status and status < 500 ->
+          {[{:error, response |> create_error_response()}], nil}
+
+        %{status: status} = response when status < 300 ->
+          {[{:ok, response |> create_success_response()}], nil}
+      end,
+      fn _ -> nil end
+    )
+    |> Stream.flat_map(fn
+      {:ok, %{x_ms_copy_status: status}} = result
+      when status != "success" and status != "failed" ->
+        [result]
+
+      result ->
+        [result, :halt]
+    end)
+    |> Stream.take_while(fn
+      :halt -> false
+      _ -> true
+    end)
+  end
+
+  def copy(
+        %__MODULE__{} = source,
+        %__MODULE__{} = target,
+        opts \\ []
+      ) do
+    copy_stream(source, target, opts)
+    |> Enum.reduce(nil, fn result, _ -> result end)
+  end
+
+  def url(%__MODULE__{
+        container: %Container{
+          storage_context: context,
+          container_name: container
+        },
+        blob_name: blob_name
+      }),
+      do: Azure.Storage.endpoint_url(context, :blob_service) <> "/#{container}/#{blob_name}"
 
   defp config(), do: Application.get_env(:azure, __MODULE__, [])
 end

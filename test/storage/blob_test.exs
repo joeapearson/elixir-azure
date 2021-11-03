@@ -136,4 +136,20 @@ defmodule Azure.Storage.BlobTest do
       assert source_content_disposition == destination_content_disposition
     end
   end
+
+  describe "copy" do
+    test "copies a blob from another blob", %{
+      container_context: container_context
+    } do
+      blob_data = "my_blob_data"
+      source = container_context |> Blob.new("source_blob")
+      target = container_context |> Blob.new("target_blob")
+
+      assert {:ok, %{status: 201}} = Blob.put_blob(source, blob_data)
+      assert {:ok, %{body: ^blob_data}} = Blob.get_blob(source)
+
+      assert {:ok, %{x_ms_copy_status: "success"}} = Blob.copy(source, target)
+      assert {:ok, %{body: ^blob_data}} = Blob.get_blob(target)
+    end
+  end
 end
