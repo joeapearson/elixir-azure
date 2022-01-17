@@ -20,15 +20,17 @@ defmodule Azure.Storage.RestClient do
       proxy_cfg ->
         proxy_cfg
         |> String.split(":")
-        |> (fn [host, port] ->
-              {Tesla.Middleware.Opts,
-               [
-                 # https://github.com/cmullaparthi/ibrowse/wiki/ibrowse-API
-                 proxy_host: host |> String.to_charlist(),
-                 proxy_port: port |> Integer.parse() |> elem(0)
-               ]}
-            end).()
+        |> proxy_configuration()
     end
+  end
+
+  defp proxy_configuration([host, port]) do
+    {Tesla.Middleware.Opts,
+     [
+       # https://github.com/cmullaparthi/ibrowse/wiki/ibrowse-API
+       proxy_host: host |> String.to_charlist(),
+       proxy_port: port |> Integer.parse() |> elem(0)
+     ]}
   end
 
   def new(base_url) when is_binary(base_url) do

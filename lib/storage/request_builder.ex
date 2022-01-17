@@ -11,7 +11,7 @@ defmodule Azure.Storage.RequestBuilder do
 
   defp json_library, do: Application.get_env(:azure, :json_library, Jason)
 
-  def new_azure_storage_request(storage = %Storage{}), do: %{storage_context: storage}
+  def new_azure_storage_request(%Storage{} = storage), do: %{storage_context: storage}
 
   def method(request, m), do: request |> Map.put_new(:method, m)
 
@@ -45,7 +45,7 @@ defmodule Azure.Storage.RequestBuilder do
 
   @prefix_x_ms_meta "x-ms-meta-"
 
-  def add_header_x_ms_meta(request, kvp = %{}),
+  def add_header_x_ms_meta(request, %{} = kvp),
     do:
       kvp
       |> Enum.reduce(request, fn {k, v}, r -> r |> add_header(@prefix_x_ms_meta <> k, v) end)
@@ -127,8 +127,7 @@ defmodule Azure.Storage.RequestBuilder do
     |> Enum.map(fn {k, v} -> {k |> String.downcase(), v} end)
     |> Enum.filter(fn {k, _} -> k |> String.starts_with?("x-ms-") end)
     |> Enum.sort()
-    |> Enum.map(fn {k, v} -> "#{k}:#{v}" end)
-    |> Enum.join("\n")
+    |> Enum.map_join("\n", fn {k, v} -> "#{k}:#{v}" end)
   end
 
   def remove_empty_headers(request = %{headers: headers}) when is_list(headers) do
@@ -215,10 +214,10 @@ defmodule Azure.Storage.RequestBuilder do
   end
 
   defp protect(
-         request = %{
+         %{
            storage_context: %Storage{account_key: nil, aad_token_provider: aad_token_provider},
            uri: uri
-         }
+         } = request
        ) do
     token =
       uri
@@ -285,7 +284,7 @@ defmodule Azure.Storage.RequestBuilder do
 
   def identity(x), do: x
 
-  def create_error_response(response = %{}) do
+  def create_error_response(%{} = response) do
     response
     |> create_success_response(xml_body_parser: &__MODULE__.Responses.error_response/0)
     |> Map.update(:error_message, "", &String.split(&1, "\n"))
@@ -299,22 +298,20 @@ defmodule Azure.Storage.RequestBuilder do
     |> Map.put(:body, response.body)
     |> copy_response_headers_into_map()
     |> copy_x_ms_meta_headers_into_map()
-    |> (fn
-          response = %{body: ""} ->
-            response
+    |> parse_body_and_update_response(opts)
+  end
 
-          response = %{body: body} ->
-            case opts |> Keyword.get(:xml_body_parser) do
-              nil ->
-                response
+  defp parse_body_and_update_response(%{body: ""} = response, _), do: response
 
-              xml_parser when is_function(xml_parser) ->
-                response
-                |> Map.merge(body |> xmap(xml_parser.()))
-            end
-        end).()
+  defp parse_body_and_update_response(%{body: body} = response, opts) do
+    case opts |> Keyword.get(:xml_body_parser) do
+      nil ->
+        response
 
-    # |> (fn response = %{headers: headers} ->)
+      xml_parser when is_function(xml_parser) ->
+        response
+        |> Map.merge(body |> xmap(xml_parser.()))
+    end
   end
 
   @response_headers [
@@ -340,7 +337,7 @@ defmodule Azure.Storage.RequestBuilder do
     {"x-ms-copy-status", :x_ms_copy_status}
   ]
 
-  defp copy_response_headers_into_map(response = %{}) do
+  defp copy_response_headers_into_map(%{} = response) do
     Enum.reduce(@response_headers, response, fn x, response ->
       response |> copy_response_header_into_map(x)
     end)

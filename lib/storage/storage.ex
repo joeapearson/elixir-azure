@@ -55,14 +55,14 @@ defmodule Azure.Storage do
   """
   def emulator(host \\ "127.0.0.1"), do: development_factory(host)
 
-  def secondary(context = %__MODULE__{is_development_factory: true}), do: context
+  def secondary(%__MODULE__{is_development_factory: true} = context), do: context
 
-  def secondary(context = %__MODULE__{}),
+  def secondary(%__MODULE__{} = context),
     do:
       context
       |> Map.update!(:account_name, &(&1 <> "-secondary"))
 
-  def endpoint_url(context = %__MODULE__{is_development_factory: true, host: host}, service)
+  def endpoint_url(%__MODULE__{is_development_factory: true, host: host} = context, service)
       when is_atom(service) do
     port =
       case service do
@@ -80,12 +80,12 @@ defmodule Azure.Storage do
     |> URI.to_string()
   end
 
-  def endpoint_url(context = %__MODULE__{}, service) when is_atom(service),
+  def endpoint_url(%__MODULE__{} = context, service) when is_atom(service),
     do:
       %URI{scheme: default_endpoints_protocol(context), host: endpoint_hostname(context, service)}
       |> URI.to_string()
 
-  def endpoint_hostname(context = %__MODULE__{}, service) when is_atom(service),
+  def endpoint_hostname(%__MODULE__{} = context, service) when is_atom(service),
     do: "#{context.account_name}.#{@endpoint_names[service]}.#{context.endpoint_suffix}"
 
   def default_endpoints_protocol(%__MODULE__{
