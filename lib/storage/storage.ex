@@ -50,6 +50,11 @@ defmodule Azure.Storage do
     }
   end
 
+  @doc """
+  Returns the storage context for a local Azure storage emulator.
+  """
+  def emulator(host \\ "127.0.0.1"), do: development_factory(host)
+
   def secondary(context = %__MODULE__{is_development_factory: true}), do: context
 
   def secondary(context = %__MODULE__{}),
