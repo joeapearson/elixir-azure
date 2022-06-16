@@ -19,8 +19,7 @@ defmodule Azure.Factory do
       ["AccountKey", Map.get(attrs, :account_key, sequence("account_key"))],
       ["EndpointSuffix", Map.get(attrs, :endpoint_suffix, sequence("endpoint_suffix"))]
     ]
-    |> Enum.map(fn kv -> Enum.join(kv, "=") end)
-    |> Enum.join(";")
+    |> Enum.map_join(";", fn kv -> Enum.join(kv, "=") end)
   end
 
   def content_type_factory(_attrs), do: sequence("application/type")

@@ -3,8 +3,6 @@ defmodule Azure.Storage.BlobStorage do
   BlobStorage
   """
 
-  use NamedArgs
-
   import SweetXml
   import Azure.Storage.RequestBuilder
   import Azure.Storage.Utilities, only: [to_bool: 1]
@@ -16,17 +14,18 @@ defmodule Azure.Storage.BlobStorage do
     @moduledoc false
     import Azure.Storage.RequestBuilder
 
-    def get_blob_service_stats_response(),
-      do: [
+    def get_blob_service_stats_response do
+      [
         geo_replication: [
           ~x"/StorageServiceStats/GeoReplication",
           status: ~x"./Status/text()"s,
           last_sync_time: ~x"./LastSyncTime/text()"s
         ]
       ]
+    end
 
-    def get_blob_service_properties_response(),
-      do: [
+    def get_blob_service_properties_response do
+      [
         logging: [
           ~x"/StorageServiceProperties/Logging",
           version: ~x"./Version/text()"s,
@@ -80,6 +79,7 @@ defmodule Azure.Storage.BlobStorage do
           days: ~x"./Days/text()"I
         ]
       ]
+    end
   end
 
   defmodule ServiceProperties do
@@ -258,15 +258,15 @@ defmodule Azure.Storage.BlobStorage do
        ]})
     end
 
-    def parse(xml),
-      do:
-        xml
-        |> xmap(__MODULE__.storage_service_properties_parser())
-        |> Map.get(:storage_service_properties)
-        |> __MODULE__.to_struct()
+    def parse(xml) do
+      xml
+      |> xmap(__MODULE__.storage_service_properties_parser())
+      |> Map.get(:storage_service_properties)
+      |> __MODULE__.to_struct()
+    end
 
-    def storage_service_properties_parser(),
-      do: [
+    def storage_service_properties_parser do
+      [
         storage_service_properties: [
           ~x"/StorageServiceProperties",
           logging: [
@@ -325,9 +325,10 @@ defmodule Azure.Storage.BlobStorage do
           ]
         ]
       ]
+    end
   end
 
-  def get_blob_service_stats(context = %Storage{}) do
+  def get_blob_service_stats(%Storage{} = context) do
     # https://docs.microsoft.com/en-us/rest/api/storageservices/get-blob-service-stats
     response =
       context
@@ -356,7 +357,7 @@ defmodule Azure.Storage.BlobStorage do
     end
   end
 
-  def get_blob_service_properties(context = %Storage{}) do
+  def get_blob_service_properties(%Storage{} = context) do
     # https://docs.microsoft.com/en-us/rest/api/storageservices/get-blob-service-properties
     response =
       context
@@ -384,7 +385,7 @@ defmodule Azure.Storage.BlobStorage do
     end
   end
 
-  def set_blob_service_properties(context = %Storage{}, service_properties = %ServiceProperties{}) do
+  def set_blob_service_properties(%Storage{} = context, %ServiceProperties{} = service_properties) do
     # https://docs.microsoft.com/en-us/rest/api/storageservices/set-blob-service-properties
     response =
       context

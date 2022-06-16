@@ -15,7 +15,7 @@ defmodule Azure.Storage.Container do
   @enforce_keys [:storage_context, :container_name]
   defstruct [:storage_context, :container_name]
 
-  def new(storage_context = %Storage{}, container_name)
+  def new(%Storage{} = storage_context, container_name)
       when is_binary(container_name),
       do: %__MODULE__{storage_context: storage_context, container_name: container_name}
 
@@ -73,7 +73,7 @@ defmodule Azure.Storage.Container do
       ]
   end
 
-  def list_containers(context = %Storage{}) do
+  def list_containers(%Storage{} = context) do
     # https://docs.microsoft.com/en-us/rest/api/storageservices/list-containers2
     response =
       context
@@ -197,13 +197,13 @@ defmodule Azure.Storage.Container do
     end
   end
 
-  def set_container_acl_public_access_off(container = %__MODULE__{}),
+  def set_container_acl_public_access_off(%__MODULE__{} = container),
     do: container |> set_container_acl(:off)
 
-  def set_container_acl_public_access_blob(container = %__MODULE__{}),
+  def set_container_acl_public_access_blob(%__MODULE__{} = container),
     do: container |> set_container_acl(:blob)
 
-  def set_container_acl_public_access_container(container = %__MODULE__{}),
+  def set_container_acl_public_access_container(%__MODULE__{} = container),
     do: container |> set_container_acl(:container)
 
   defp container_access_level_to_string(:off), do: nil

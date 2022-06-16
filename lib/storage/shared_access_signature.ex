@@ -31,37 +31,37 @@ defmodule Azure.Storage.SharedAccessSignature do
 
   def new, do: %__MODULE__{}
 
-  def for_storage_account(v = %__MODULE__{target_scope: nil}),
+  def for_storage_account(%__MODULE__{target_scope: nil} = v),
     do: v |> Map.put(:target_scope, :account)
 
-  def for_blob_service(v = %__MODULE__{target_scope: nil}), do: v |> Map.put(:target_scope, :blob)
+  def for_blob_service(%__MODULE__{target_scope: nil} = v), do: v |> Map.put(:target_scope, :blob)
 
-  def for_table_service(v = %__MODULE__{target_scope: nil}),
+  def for_table_service(%__MODULE__{target_scope: nil} = v),
     do: v |> Map.put(:target_scope, :table)
 
-  def for_queue_service(v = %__MODULE__{target_scope: nil}),
+  def for_queue_service(%__MODULE__{target_scope: nil} = v),
     do: v |> Map.put(:target_scope, :queue)
 
   # https://docs.microsoft.com/en-us/rest/api/storageservices/constructing-an-account-sas#specifying-account-sas-parameters
   @services_map %{blob: "b", queue: "q", table: "t", file: "f"}
-  def add_service_blob(v = %__MODULE__{target_scope: :account}), do: v |> add_to(:services, :blob)
+  def add_service_blob(%__MODULE__{target_scope: :account} = v), do: v |> add_to(:services, :blob)
 
-  def add_service_queue(v = %__MODULE__{target_scope: :account}),
+  def add_service_queue(%__MODULE__{target_scope: :account} = v),
     do: v |> add_to(:services, :queue)
 
-  def add_service_table(v = %__MODULE__{target_scope: :account}),
+  def add_service_table(%__MODULE__{target_scope: :account} = v),
     do: v |> add_to(:services, :table)
 
-  def add_service_file(v = %__MODULE__{target_scope: :account}), do: v |> add_to(:services, :file)
+  def add_service_file(%__MODULE__{target_scope: :account} = v), do: v |> add_to(:services, :file)
 
   @resource_types_map %{service: "s", object: "o", container: "c"}
-  def add_resource_type_service(v = %__MODULE__{target_scope: :account}),
+  def add_resource_type_service(%__MODULE__{target_scope: :account} = v),
     do: v |> add_to(:resource_type, :service)
 
-  def add_resource_type_container(v = %__MODULE__{target_scope: :account}),
+  def add_resource_type_container(%__MODULE__{target_scope: :account} = v),
     do: v |> add_to(:resource_type, :container)
 
-  def add_resource_type_object(v = %__MODULE__{target_scope: :account}),
+  def add_resource_type_object(%__MODULE__{target_scope: :account} = v),
     do: v |> add_to(:resource_type, :object)
 
   @resource_map %{
@@ -73,9 +73,9 @@ defmodule Azure.Storage.SharedAccessSignature do
     file: "f"
   }
 
-  def add_resource_blob_container(v = %__MODULE__{}), do: v |> add_to(:resource, :container)
+  def add_resource_blob_container(%__MODULE__{} = v), do: v |> add_to(:resource, :container)
 
-  def add_resource_blob_blob(v = %__MODULE__{}), do: v |> add_to(:resource, :blob)
+  def add_resource_blob_blob(%__MODULE__{} = v), do: v |> add_to(:resource, :blob)
 
   @permissions_map %{
     read: "r",
@@ -87,42 +87,42 @@ defmodule Azure.Storage.SharedAccessSignature do
     update: "u",
     process: "p"
   }
-  def add_permission_read(v = %__MODULE__{}), do: add_to(v, :permissions, :read)
-  def add_permission_write(v = %__MODULE__{}), do: add_to(v, :permissions, :write)
-  def add_permission_delete(v = %__MODULE__{}), do: add_to(v, :permissions, :delete)
-  def add_permission_list(v = %__MODULE__{}), do: add_to(v, :permissions, :list)
-  def add_permission_add(v = %__MODULE__{}), do: add_to(v, :permissions, :add)
-  def add_permission_create(v = %__MODULE__{}), do: add_to(v, :permissions, :create)
-  def add_permission_update(v = %__MODULE__{}), do: add_to(v, :permissions, :update)
-  def add_permission_process(v = %__MODULE__{}), do: add_to(v, :permissions, :process)
+  def add_permission_read(%__MODULE__{} = v), do: add_to(v, :permissions, :read)
+  def add_permission_write(%__MODULE__{} = v), do: add_to(v, :permissions, :write)
+  def add_permission_delete(%__MODULE__{} = v), do: add_to(v, :permissions, :delete)
+  def add_permission_list(%__MODULE__{} = v), do: add_to(v, :permissions, :list)
+  def add_permission_add(%__MODULE__{} = v), do: add_to(v, :permissions, :add)
+  def add_permission_create(%__MODULE__{} = v), do: add_to(v, :permissions, :create)
+  def add_permission_update(%__MODULE__{} = v), do: add_to(v, :permissions, :update)
+  def add_permission_process(%__MODULE__{} = v), do: add_to(v, :permissions, :process)
 
-  def add_canonicalized_resource(v = %__MODULE__{}, resource_name) do
+  def add_canonicalized_resource(%__MODULE__{} = v, resource_name) do
     %{v | canonicalized_resource: resource_name}
   end
 
   def as_time(t), do: t |> Timex.format!("{YYYY}-{0M}-{0D}T{0h24}:{0m}:{0s}Z")
 
-  def service_version(v = %__MODULE__{}, service_version),
+  def service_version(%__MODULE__{} = v, service_version),
     do: %{v | service_version: service_version}
 
-  def start_time(v = %__MODULE__{}, start_time), do: %{v | start_time: start_time}
-  def expiry_time(v = %__MODULE__{}, expiry_time), do: %{v | expiry_time: expiry_time}
-  def resource(v = %__MODULE__{}, resource), do: %{v | resource: resource}
-  def ip_range(v = %__MODULE__{}, ip_range), do: %{v | ip_range: ip_range}
-  def protocol(v = %__MODULE__{}, protocol), do: %{v | protocol: protocol}
+  def start_time(%__MODULE__{} = v, start_time), do: %{v | start_time: start_time}
+  def expiry_time(%__MODULE__{} = v, expiry_time), do: %{v | expiry_time: expiry_time}
+  def resource(%__MODULE__{} = v, resource), do: %{v | resource: resource}
+  def ip_range(%__MODULE__{} = v, ip_range), do: %{v | ip_range: ip_range}
+  def protocol(%__MODULE__{} = v, protocol), do: %{v | protocol: protocol}
 
-  def cache_control(v = %__MODULE__{}, cache_control), do: %{v | cache_control: cache_control}
+  def cache_control(%__MODULE__{} = v, cache_control), do: %{v | cache_control: cache_control}
 
-  def content_disposition(v = %__MODULE__{}, content_disposition),
+  def content_disposition(%__MODULE__{} = v, content_disposition),
     do: %{v | content_disposition: content_disposition}
 
-  def content_encoding(v = %__MODULE__{}, content_encoding),
+  def content_encoding(%__MODULE__{} = v, content_encoding),
     do: %{v | content_encoding: content_encoding}
 
-  def content_language(v = %__MODULE__{}, content_language),
+  def content_language(%__MODULE__{} = v, content_language),
     do: %{v | content_language: content_language}
 
-  def content_type(v = %__MODULE__{}, content_type), do: %{v | content_type: content_type}
+  def content_type(%__MODULE__{} = v, content_type), do: %{v | content_type: content_type}
 
   def encode({:service_version, value}), do: {"sv", value}
   def encode({:start_time, value}), do: {"st", value |> as_time()}
@@ -211,7 +211,7 @@ defmodule Azure.Storage.SharedAccessSignature do
   end
 
   def sign(
-        sas = %__MODULE__{target_scope: target_scope},
+        %__MODULE__{target_scope: target_scope} = sas,
         %Storage{account_name: account_name, account_key: account_key}
       )
       when is_atom(target_scope) and target_scope != nil do

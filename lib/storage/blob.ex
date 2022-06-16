@@ -4,7 +4,6 @@ defmodule Azure.Storage.Blob do
   """
   require Logger
   import SweetXml
-  use NamedArgs
 
   import Azure.Storage.RequestBuilder
   alias Azure.Storage.{BlobProperties, Container}
@@ -18,7 +17,7 @@ defmodule Azure.Storage.Blob do
 
   defstruct [:container, :blob_name]
 
-  def new(container = %Container{}, blob_name)
+  def new(%Container{} = container, blob_name)
       when is_binary(blob_name),
       do: %__MODULE__{container: container, blob_name: blob_name}
 
@@ -234,7 +233,7 @@ defmodule Azure.Storage.Blob do
           container: %Container{storage_context: context, container_name: container_name},
           blob_name: blob_name
         },
-        blob_properties = %BlobProperties{}
+        %BlobProperties{} = blob_properties
       ) do
     headers =
       blob_properties
@@ -341,10 +340,10 @@ defmodule Azure.Storage.Blob do
   defp header_for_opt(:content_encoding), do: "x-ms-blob-content-encoding"
 
   def put_blob_from_url(
-        blob = %__MODULE__{
+        %__MODULE__{
           container: %Container{storage_context: context, container_name: container_name},
           blob_name: blob_name
-        },
+        } = blob,
         url,
         opts \\ []
       ) do
@@ -414,11 +413,12 @@ defmodule Azure.Storage.Blob do
     blob |> update_blob_properties(struct!(BlobProperties, content_type_attrs))
   end
 
-  defp suppress_workaround_for_put_blob_from_url_warning?(),
-    do: config() |> Keyword.get(:suppress_workaround_for_put_blob_from_url_warning?, false)
+  defp suppress_workaround_for_put_blob_from_url_warning? do
+    Keyword.get(config(), :suppress_workaround_for_put_blob_from_url_warning?, false)
+  end
 
   @spec upload_file(Container.t(), String.t()) :: {:ok, map} | {:error, map}
-  def upload_file(container = %Container{}, source_path, blob_name \\ nil) do
+  def upload_file(%Container{} = container, source_path, blob_name \\ nil) do
     container
     |> to_blob(source_path, blob_name)
     |> upload_async(source_path)
@@ -594,5 +594,5 @@ defmodule Azure.Storage.Blob do
       }),
       do: Azure.Storage.endpoint_url(context, :blob_service) <> "/#{container}/#{blob_name}"
 
-  defp config(), do: Application.get_env(:azure, __MODULE__, [])
+  defp config, do: Application.get_env(:azure, __MODULE__, [])
 end
